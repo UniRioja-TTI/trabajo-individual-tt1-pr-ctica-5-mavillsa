@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Welcome</title>
+</head>
+	<body>
+    	<form th:action="@{/solicitud}" method="post">
+			<div th:each="entity : ${entities}">
+			        <div>
+			            <label th:for="${entity.id}" th:text="'Num. de' + ${entity.name} + ':'"></label>
+			            <input type="number" min="0" th:id="${entity.id}" th:name="${entity.id}" />
+			        </div>
+			</div>
+			<button type="submit">Solicitar</button>
+		</form>
+	</body>
+</html>
