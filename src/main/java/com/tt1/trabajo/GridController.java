@@ -38,10 +38,15 @@ public class GridController {
         model.addAttribute("count", ds.getAnchoTablero());
         model.addAttribute("maxTime", ds.getMaxSegundos());
         Map<String, String> colors = new HashMap<>();
-        for(var t = 0; t < ds.getMaxSegundos(); t++) {
-        	for(Punto p : ds.getPuntos().get(t)) {
-        		colors.put(t+"-"+p.getY()+"-"+p.getX(), p.getColor());
-        	}
+        if (ds.getPuntos() != null) {
+            for(var t = 0; t < ds.getMaxSegundos(); t++) {
+                List<Punto> puntosTiempo = ds.getPuntos().get(t);
+                if (puntosTiempo != null) {
+                    for(Punto p : puntosTiempo) {
+                        colors.put(t+"-"+p.getY()+"-"+p.getX(), p.getColor());
+                    }
+                }
+            }
         }
         model.addAttribute("colors", colors);
         return "grid";
