@@ -67,7 +67,7 @@ public class ContactoSimService implements InterfazContactoSim {
             
             // OJO: Esta es la llamada a tu máquina virtual. Asumo que la tienes en el 8080.
             // Cumplimos la norma de usar un usuario constante ("alumnoPrueba")
-            String url = "http://localhost:8084/grid?tok=" + ticket + "&user=alumnoPrueba"; 
+            String url = "http://localhost:8080/grid?tok=" + ticket + "&user=alumnoPrueba"; 
             
             String respuesta = restTemplate.getForObject(url, String.class);
 
