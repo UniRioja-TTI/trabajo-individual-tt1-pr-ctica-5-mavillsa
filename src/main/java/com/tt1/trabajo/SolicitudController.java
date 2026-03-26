@@ -23,8 +23,8 @@ public class SolicitudController {
 	private final Logger logger;
 	
 	public SolicitudController(InterfazContactoSim ics, Logger logger) {
-		this.ics = ics;
-		this.logger = logger;
+		this.ics = ics;    
+		this.logger   = logger;
 	}
 
     @GetMapping("/solicitud")
