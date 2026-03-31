@@ -51,8 +51,7 @@ public class ContactoSimService implements InterfazContactoSim {
     public int solicitarSimulation(DatosSolicitud sol) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String url = "http://localhost:8081/Solicitud/Solicitar?nombreUsuario=alumnoPrueba";
-
+            String url = "http://host.docker.internal:8081/Solicitud/Solicitar?nombreUsuario=alumnoPrueba";
             // Construimos el body según el esquema "Solicitud" del swagger:
             // { "cantidadesIniciales": [1,2,3], "nombreEntidades": ["Parámetro 1", ...] }
             List<Integer> cantidades = new ArrayList<>();
@@ -102,10 +101,11 @@ public class ContactoSimService implements InterfazContactoSim {
             RestTemplate restTemplate = new RestTemplate();
 
             // Ahora es POST /Resultados con tok y nombreUsuario como query params
-            String url = "http://localhost:8081/Resultados?nombreUsuario=alumnoPrueba&tok=" + ticket;
-
-            Map response = restTemplate.postForObject(url, null, Map.class);
-
+            String url = "http://host.docker.internal:8081/Resultados?nombreUsuario=alumnoPrueba&tok=" + ticket;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> request = new HttpEntity<>("{}", headers);
+            Map response = restTemplate.postForObject(url, request, Map.class);
             if (response != null && Boolean.TRUE.equals(response.get("done"))) {
                 String respuesta = (String) response.get("data");
                 System.out.println("ESTO ME DEVUELVE LA MÁQUINA: \n" + respuesta);
