@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -14,19 +16,17 @@ import modelo.DatosSolicitud;
 import modelo.Entidad;
 import modelo.Punto;
 
-@Service 
+@Service
 public class ContactoSimService implements InterfazContactoSim {
-	private List<Entidad> entidades;
-    private Map<Integer, DatosSolicitud> solicitudesGuardadas;
-    private final Random random;
-    private final Logger logger; 
+    private List<Entidad> entidades;
+    private final Logger logger;
+
     public ContactoSimService(Logger logger) {
         this.entidades = new ArrayList<>();
-        this.solicitudesGuardadas = new HashMap<>();
-        this.random = new Random();
         this.logger = logger;
         inicializarEntidades();
     }
+
     private void inicializarEntidades() {
         Entidad e1 = new Entidad();
         e1.setId(1);
@@ -47,13 +47,49 @@ public class ContactoSimService implements InterfazContactoSim {
         entidades.add(e3);
     }
 
-    
-    
     @Override
     public int solicitarSimulation(DatosSolicitud sol) {
-    	int token = 1000 + random.nextInt(9000);
-        solicitudesGuardadas.put(token, sol);
-        return token;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8081/Solicitud/Solicitar?nombreUsuario=alumnoPrueba";
+
+            // Construimos el body según el esquema "Solicitud" del swagger:
+            // { "cantidadesIniciales": [1,2,3], "nombreEntidades": ["Parámetro 1", ...] }
+            List<Integer> cantidades = new ArrayList<>();
+            List<String> nombres = new ArrayList<>();
+
+            for (Map.Entry<Integer, Integer> entry : sol.getNums().entrySet()) {
+                int id = entry.getKey();
+                int cantidad = entry.getValue();
+                entidades.stream()
+                        .filter(e -> e.getId() == id)
+                        .findFirst()
+                        .ifPresent(e -> {
+                            cantidades.add(cantidad);
+                            nombres.add(e.getName());
+                        });
+            }
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("cantidadesIniciales", cantidades);
+            body.put("nombreEntidades", nombres);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            Map response = restTemplate.postForObject(url, request, Map.class);
+
+            if (response != null && Boolean.TRUE.equals(response.get("done"))) {
+                return (Integer) response.get("tokenSolicitud");
+            } else {
+                logger.error("La VM rechazó la solicitud: " + (response != null ? response.get("errorMessage") : "sin respuesta"));
+                return -1;
+            }
+        } catch (Exception e) {
+            logger.error("Error al solicitar simulación: " + e.getMessage());
+            return -1;
+        }
     }
 
     @Override
@@ -64,53 +100,55 @@ public class ContactoSimService implements InterfazContactoSim {
 
         try {
             RestTemplate restTemplate = new RestTemplate();
-            
-            // OJO: Esta es la llamada a tu máquina virtual. Asumo que la tienes en el 8080.
-            // Cumplimos la norma de usar un usuario constante ("alumnoPrueba")
-            String url = "http://localhost:8080/grid?tok=" + ticket + "&user=alumnoPrueba"; 
-            
-            String respuesta = restTemplate.getForObject(url, String.class);
 
-            if (respuesta != null && !respuesta.trim().isEmpty()) {
-                String[] lineas = respuesta.split("\n");
-                
-                // El primer número es el ancho de la matriz
-                int anchoTablero = Integer.parseInt(lineas[0].trim());
-                ds.setAnchoTablero(anchoTablero);
-                
-                // Procesamos el resto de líneas (tiempo, y, x, color)
-                for (int i = 1; i < lineas.length; i++) {
-                    String linea = lineas[i].trim();
-                    if (linea.isEmpty()) continue;
-                    
-                    String[] partes = linea.split(",");
-                    if (partes.length >= 4) {
-                        int tiempo = Integer.parseInt(partes[0].trim());
-                        int y = Integer.parseInt(partes[1].trim());
-                        int x = Integer.parseInt(partes[2].trim());
-                        String color = partes[3].trim();
-                        
-                        Punto punto = new Punto();
-                        punto.setX(x);
-                        punto.setY(y);
-                        punto.setColor(color);
-                        
-                        puntos.computeIfAbsent(tiempo, k -> new ArrayList<>()).add(punto);
-                        
-                        if (tiempo > maxTiempo) {
-                            maxTiempo = tiempo;
+            // Ahora es POST /Resultados con tok y nombreUsuario como query params
+            String url = "http://localhost:8081/Resultados?nombreUsuario=alumnoPrueba&tok=" + ticket;
+
+            Map response = restTemplate.postForObject(url, null, Map.class);
+
+            if (response != null && Boolean.TRUE.equals(response.get("done"))) {
+                String respuesta = (String) response.get("data");
+                System.out.println("ESTO ME DEVUELVE LA MÁQUINA: \n" + respuesta);
+
+                if (respuesta != null && !respuesta.trim().isEmpty()) {
+                    String[] lineas = respuesta.split("\n");
+
+                    int anchoTablero = Integer.parseInt(lineas[0].trim());
+                    ds.setAnchoTablero(anchoTablero);
+
+                    for (int i = 1; i < lineas.length; i++) {
+                        String linea = lineas[i].trim();
+                        if (linea.isEmpty()) continue;
+
+                        String[] partes = linea.split(",");
+                        if (partes.length >= 4) {
+                            int tiempo = Integer.parseInt(partes[0].trim());
+                            int y = Integer.parseInt(partes[1].trim());
+                            int x = Integer.parseInt(partes[2].trim());
+                            String color = partes[3].trim();
+
+                            Punto punto = new Punto();
+                            punto.setX(x);
+                            punto.setY(y);
+                            punto.setColor(color);
+
+                            puntos.computeIfAbsent(tiempo, k -> new ArrayList<>()).add(punto);
+
+                            if (tiempo > maxTiempo) maxTiempo = tiempo;
                         }
                     }
                 }
+            } else {
+                logger.error("La VM devolvió error: " + (response != null ? response.get("errorMessage") : "sin respuesta"));
+                ds.setAnchoTablero(10);
             }
         } catch (Exception e) {
             logger.error("No se pudo conectar con la máquina virtual: " + e.getMessage());
-            ds.setAnchoTablero(10); // Valor de seguridad para que no explote la web
+            ds.setAnchoTablero(10);
         }
 
         ds.setPuntos(puntos);
         ds.setMaxSegundos(maxTiempo + 1);
-
         return ds;
     }
 
@@ -121,6 +159,6 @@ public class ContactoSimService implements InterfazContactoSim {
 
     @Override
     public boolean isValidEntityId(int i) {
-    	return entidades.stream().anyMatch(e -> e.getId() == i);
+        return entidades.stream().anyMatch(e -> e.getId() == i);
     }
 }
