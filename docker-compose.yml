@@ -1,0 +1,17 @@
+services:
+  servicio-consumible:
+    image: javillour/servicio-tt1:amd64
+    networks:
+      - red-interna
+
+  spring-app:
+    image: mi-trabajo-individual
+    ports:
+      - "5000:5000"
+    networks:
+      - red-interna
+    depends_on:
+      - servicio-consumible
+
+networks:
+  red-interna:

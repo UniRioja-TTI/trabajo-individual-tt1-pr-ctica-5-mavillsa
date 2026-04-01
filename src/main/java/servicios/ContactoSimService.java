@@ -51,7 +51,7 @@ public class ContactoSimService implements InterfazContactoSim {
     public int solicitarSimulation(DatosSolicitud sol) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String url = "http://host.docker.internal:8081/Solicitud/Solicitar?nombreUsuario=alumnoPrueba";
+            String url = "http://servicio-consumible:5000/Solicitud/Solicitar?nombreUsuario=alumnoPrueba";
             // Construimos el body según el esquema "Solicitud" del swagger:
             // { "cantidadesIniciales": [1,2,3], "nombreEntidades": ["Parámetro 1", ...] }
             List<Integer> cantidades = new ArrayList<>();
@@ -101,7 +101,7 @@ public class ContactoSimService implements InterfazContactoSim {
             RestTemplate restTemplate = new RestTemplate();
 
             // Ahora es POST /Resultados con tok y nombreUsuario como query params
-            String url = "http://host.docker.internal:8081/Resultados?nombreUsuario=alumnoPrueba&tok=" + ticket;
+            String url = "http://servicio-consumible:5000/Resultados?nombreUsuario=alumnoPrueba&tok=" + ticket;
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> request = new HttpEntity<>("{}", headers);
