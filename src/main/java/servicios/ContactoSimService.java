@@ -31,19 +31,17 @@ public class ContactoSimService implements InterfazContactoSim {
         Entidad e1 = new Entidad();
         e1.setId(1);
         e1.setName("Parámetro 1");
-        e1.setDescripcion("Controlan la temperatura ambiental.");
+        e1.setDescripcion("Temperatura ambiental.");
         entidades.add(e1);
-
         Entidad e2 = new Entidad();
         e2.setId(2);
         e2.setName("Parámetro 2");
-        e2.setDescripcion("Miden el nivel de humedad en el aire.");
+        e2.setDescripcion("Humedad en el aire.");
         entidades.add(e2);
-
         Entidad e3 = new Entidad();
         e3.setId(3);
         e3.setName("Parámetro 3");
-        e3.setDescripcion("Sistemas de vigilancia por video.");
+        e3.setDescripcion("Vigilancia por video.");
         entidades.add(e3);
     }
 
@@ -52,11 +50,8 @@ public class ContactoSimService implements InterfazContactoSim {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String url = "http://servicio-consumible:8080/Solicitud/Solicitar?nombreUsuario=alumnoPrueba";
-            // Construimos el body según el esquema "Solicitud" del swagger:
-            // { "cantidadesIniciales": [1,2,3], "nombreEntidades": ["Parámetro 1", ...] }
             List<Integer> cantidades = new ArrayList<>();
             List<String> nombres = new ArrayList<>();
-
             for (Map.Entry<Integer, Integer> entry : sol.getNums().entrySet()) {
                 int id = entry.getKey();
                 int cantidad = entry.getValue();
@@ -99,8 +94,6 @@ public class ContactoSimService implements InterfazContactoSim {
 
         try {
             RestTemplate restTemplate = new RestTemplate();
-
-            // Ahora es POST /Resultados con tok y nombreUsuario como query params
             String url = "http://servicio-consumible:8080/Resultados?nombreUsuario=alumnoPrueba&tok=" + ticket;
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

@@ -16,7 +16,7 @@ public class EnviarEmails implements InterfazEnviarEmails {
 
     @Override
     public boolean enviarEmail(Destinatario dest, String email) {
-        logger.info("Enviando correo ficticio al destinatario: " + dest + " | Mensaje: " + email);
+        logger.info("Enviando correo ficticio al destinatario: " + dest + " Mensaje: " + email);
         return true;
     }
 }

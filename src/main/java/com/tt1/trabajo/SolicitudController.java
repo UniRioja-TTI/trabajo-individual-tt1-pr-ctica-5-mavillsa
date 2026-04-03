@@ -48,7 +48,7 @@ public class SolicitudController {
                 if (ics.isValidEntityId(id)) {
                 	validData.put(id, num);
                 } else {
-                	errors.add(key + "no se corresponde con una entidad");
+                	errors.add(key + "no se corresponde con ninguna entidad");
                 }
             } catch (NumberFormatException e) {
                 errors.add(key + " debe ser un número entero");
@@ -64,7 +64,7 @@ public class SolicitudController {
         	if(tok != -1) {
         		model.addAttribute("token", tok);
         	} else {
-        		logger.error("Error en comunicación con servidor de simulación");
+        		logger.error("Error");
         	}
         }
         return "formResult";
